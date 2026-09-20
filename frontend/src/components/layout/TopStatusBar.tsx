@@ -12,7 +12,8 @@ import {
   ChevronRight, 
   CheckCircle2, 
   Award,
-  Flame
+  Flame,
+  Info
 } from 'lucide-react';
 
 interface TopStatusBarProps {
@@ -70,9 +71,6 @@ export const TopStatusBar: React.FC<TopStatusBarProps> = ({
               <h1 className="text-xl font-black tracking-wider text-white bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-500 bg-clip-text text-transparent">
                 VARSHAAI
               </h1>
-              <span className="text-[10px] font-bold tracking-widest bg-cyan-950/80 text-cyan-300 px-2 py-0.5 rounded border border-cyan-500/40 shadow-sm">
-                SIH 2026 EDITION
-              </span>
             </div>
             <p className="text-xs text-slate-400 hidden sm:block">
               Regime-Aware Rainfall Intelligence &amp; NWP Forecast Correction Platform
@@ -80,13 +78,13 @@ export const TopStatusBar: React.FC<TopStatusBarProps> = ({
           </div>
         </div>
 
-        {/* SIH 2026 Pitch Walkthrough Button */}
+        {/* How It Works & Data Pipeline Guide Button */}
         <button
           onClick={() => setShowPitchModal(true)}
-          className="flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-lg hover:shadow-cyan-500/20 active:scale-95"
+          className="flex items-center gap-1.5 bg-cyan-950/80 hover:bg-cyan-900/90 text-cyan-300 border border-cyan-500/40 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-md active:scale-95"
         >
-          <Award className="w-4 h-4 text-amber-300 animate-bounce" />
-          <span>SIH EVALUATOR GUIDE</span>
+          <Info className="w-4 h-4 text-cyan-400" />
+          <span>HOW IT WORKS &amp; DATA SOURCES</span>
         </button>
 
         {/* Extreme Mode Banner if active */}
@@ -161,7 +159,7 @@ export const TopStatusBar: React.FC<TopStatusBarProps> = ({
         </div>
       </header>
 
-      {/* SIH 2026 Interactive Pitch & Evaluator Guide Modal */}
+      {/* How It Works & Data Sources Modal */}
       {showPitchModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-cyan-500/50 rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative overflow-hidden">
@@ -169,9 +167,9 @@ export const TopStatusBar: React.FC<TopStatusBarProps> = ({
 
             <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
               <div className="flex items-center gap-2">
-                <Award className="w-5 h-5 text-amber-400" />
+                <Database className="w-5 h-5 text-cyan-400" />
                 <h3 className="text-base font-black text-white tracking-wide">
-                  SIH 2026 EVALUATOR DEMO FLOW
+                  HOW VARSHAAI WORKS &amp; DATA PIPELINE
                 </h3>
               </div>
               <button
@@ -183,21 +181,25 @@ export const TopStatusBar: React.FC<TopStatusBarProps> = ({
             </div>
 
             {/* Step Content */}
-            <div className="space-y-4 text-xs text-slate-300 leading-relaxed min-h-[220px]">
+            <div className="space-y-4 text-xs text-slate-300 leading-relaxed min-h-[250px]">
               {pitchStep === 1 && (
                 <div className="space-y-2.5">
                   <span className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider block">
-                    STAGE 1: THE CORE PROBLEM IN NWP RAINFALL FORECASTING
+                    STAGE 1: WHAT IS THE PROBLEM &amp; HOW VARSHAAI SOLVES IT
                   </span>
-                  <h4 className="text-lg font-black text-white">Why One Generic AI Model Fails</h4>
+                  <h4 className="text-lg font-black text-white">Why Weather Forecasts Miss Heavy Rains</h4>
                   <p>
-                    Rainfall forecast errors from Numerical Weather Prediction (NWP) models are fundamentally 
-                    non-uniform across weather situations. A <strong>Monsoon Depression</strong> produces severe under-prediction (-32 mm bias), 
-                    while a <strong>Break Monsoon</strong> produces over-prediction (+6 mm bias).
+                    Traditional weather supercomputers use mathematical physics equations (called <strong>Numerical Weather Prediction / NWP</strong>) to forecast rainfall.
                   </p>
-                  <p className="bg-slate-950 p-2.5 rounded border border-slate-800 text-slate-400">
-                    💡 <em>Judges key question:</em> "Why didn't you just train one big Neural Network?" <br />
-                    <strong>Answer:</strong> "Because atmospheric error dynamics are conditionally multi-modal. A generic model washes out localized extreme deluges into an average."
+                  <p>
+                    However, computer models make <strong>regular, predictable mistakes</strong> depending on the weather situation:
+                  </p>
+                  <ul className="list-disc pl-5 space-y-1 text-slate-300">
+                    <li>During <strong>Cyclones &amp; Monsoon Depressions</strong>, raw models routinely <em>under-predict</em> rain by 30 to 100 mm, failing to warn of flash floods.</li>
+                    <li>During <strong>Break-Monsoon</strong> dry periods, models produce false alarms.</li>
+                  </ul>
+                  <p className="bg-cyan-950/40 p-2.5 rounded border border-cyan-800/60 text-cyan-200">
+                    💡 <strong>The Innovation:</strong> Rather than using one generic AI model that averages everything out, VARSHAAI first identifies the active <strong>Weather Regime</strong>, then routes the forecast through an AI model trained specifically for that regime!
                   </p>
                 </div>
               )}
@@ -205,58 +207,66 @@ export const TopStatusBar: React.FC<TopStatusBarProps> = ({
               {pitchStep === 2 && (
                 <div className="space-y-2.5">
                   <span className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider block">
-                    STAGE 2: THE VARSHAAI REGIME-AWARE INNOVATION
+                    STAGE 2: WHERE DOES VARSHAAI TAKE DATA FROM?
                   </span>
-                  <h4 className="text-lg font-black text-white">Regime Classification → Specialized Error Models</h4>
-                  <p>
-                    VARSHAAI first classifies prevailing soundings (pressure anomaly, moisture flux, low-level wind convergence) into one of <strong>7 Canonical Indian Weather Regimes</strong> (93.24% accuracy).
-                  </p>
-                  <div className="bg-cyan-950/40 p-3 rounded-lg border border-cyan-800/60 font-mono text-cyan-300 text-center font-bold">
-                    Weather Soundings → Regime Classifier → Regime-Specific Bias Correction → Corrected Rainfall
+                  <h4 className="text-lg font-black text-white">Real-Time Multi-Source Data Ingestion</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-300">
+                    <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
+                      <p className="font-bold text-cyan-400">1. Physics Models (NWP)</p>
+                      <p className="text-[11px] text-slate-400">
+                        IMD GFS (12 km) &amp; NCMRWF Unified Model. Supplies baseline raw rainfall, surface pressure, and 850 hPa wind fields.
+                      </p>
+                    </div>
+                    <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
+                      <p className="font-bold text-sky-400">2. Satellites &amp; Radars</p>
+                      <p className="text-[11px] text-slate-400">
+                        INSAT-3D/3DR geostationary soundings &amp; IMD Doppler Weather Radar (DWR). Supplies moisture flux, cloud tops, and CAPE storm energy.
+                      </p>
+                    </div>
+                    <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
+                      <p className="font-bold text-emerald-400">3. Ground Truth Observations</p>
+                      <p className="text-[11px] text-slate-400">
+                        IMD Automated Weather Stations (AWS) and district rain gauges measuring true ground rainfall to calculate forecast errors.
+                      </p>
+                    </div>
+                    <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
+                      <p className="font-bold text-purple-400">4. Topography &amp; Coastlines</p>
+                      <p className="text-[11px] text-slate-400">
+                        SRTM 30m Digital Elevation Models and coastal distance matrices for mountain slope &amp; sea-breeze lift.
+                      </p>
+                    </div>
                   </div>
-                  <p>
-                    It then selects the specialized correction model to predict the NWP error: <code>Corrected = NWP + Predicted Error</code>.
-                  </p>
                 </div>
               )}
 
               {pitchStep === 3 && (
                 <div className="space-y-2.5">
                   <span className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider block">
-                    STAGE 3: EMPIRICAL SCIENTIFIC PROOF (SKILL CENTER)
+                    STAGE 3: WHAT DO THE NUMBERS MEAN? (SIMPLE GLOSSARY)
                   </span>
-                  <h4 className="text-lg font-black text-white">Strict Unseen Test Dataset Verification</h4>
-                  <div className="grid grid-cols-3 gap-2 text-center">
-                    <div className="bg-slate-950 p-2 rounded border border-slate-800">
-                      <span className="text-[10px] text-slate-400 block uppercase">RMSE Drop</span>
-                      <span className="text-base font-black text-cyan-400 font-mono">-47.4%</span>
-                    </div>
-                    <div className="bg-slate-950 p-2 rounded border border-slate-800">
-                      <span className="text-[10px] text-slate-400 block uppercase">MAE Drop</span>
-                      <span className="text-base font-black text-cyan-400 font-mono">-51.8%</span>
-                    </div>
-                    <div className="bg-slate-950 p-2 rounded border border-slate-800">
-                      <span className="text-[10px] text-slate-400 block uppercase">False Alarms</span>
-                      <span className="text-base font-black text-emerald-400 font-mono">&gt;58% Cut</span>
-                    </div>
+                  <h4 className="text-lg font-black text-white">Understand Every Metric on the Screen</h4>
+                  <div className="space-y-1.5 text-[11px]">
+                    <p>• <strong className="text-amber-400">Raw NWP (mm):</strong> The original prediction from traditional physics supercomputer models.</p>
+                    <p>• <strong className="text-cyan-400">AI Corrected (mm):</strong> The accurate rainfall after VARSHAAI corrects systematic model bias.</p>
+                    <p>• <strong className="text-purple-400">Weather Regime:</strong> The active weather pattern (e.g., <em>Coastal System</em>, <em>Monsoon Depression</em>, <em>Mountain Orographic</em>).</p>
+                    <p>• <strong className="text-sky-300">Quantile Range (e.g. 78–120 mm):</strong> The realistic lower and upper band where rain will actually fall (80% confidence interval).</p>
+                    <p>• <strong className="text-rose-400">Heavy Rain Probability:</strong> The statistical chance that rainfall exceeds 64.5 mm (IMD official flood warning threshold).</p>
+                    <p>• <strong className="text-red-400">Risk Radar (Red/Orange/Yellow/Green):</strong> Direct action advice for disaster managers and public safety.</p>
                   </div>
-                  <p>
-                    Evaluated on 1,050 unseen samples completely held out from training. Systematic bias reduced from +19.42 mm to -0.18 mm.
-                  </p>
                 </div>
               )}
 
               {pitchStep === 4 && (
                 <div className="space-y-2.5">
                   <span className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider block">
-                    STAGE 4: LIVE DEMO FEATURES FOR JUDGES
+                    STAGE 4: INTERACTIVE DEMO FEATURES TO TRY
                   </span>
-                  <h4 className="text-lg font-black text-white">Key Interactive Elements to Showcase</h4>
+                  <h4 className="text-lg font-black text-white">What You Can Explore Right Now</h4>
                   <ul className="space-y-1.5 list-disc pl-4 text-slate-300">
-                    <li><strong>Map Slider:</strong> Toggle "SPLIT NWP vs AI SLIDER" on the map to wipe between raw NWP and AI corrected rainfall.</li>
-                    <li><strong>Regime Sandbox:</strong> In the <em>Regime Intelligence</em> tab, drag the moisture and pressure anomaly sliders to see real-time reclassification.</li>
-                    <li><strong>Why Did It Change?:</strong> In <em>Why It Changed</em>, show the SHAP feature contribution waterfall.</li>
-                    <li><strong>Historical Event Replay:</strong> Hit "START REPLAY" to watch the 7-stage reconstruction of Cyclone Michaung.</li>
+                    <li><strong>Map Split Slider:</strong> Click "Rainfall Map", turn on "SPLIT NWP vs AI SLIDER" and wipe across India to compare before vs after.</li>
+                    <li><strong>Regime Simulator:</strong> In <em>Regime Intelligence</em>, drag atmospheric sliders (Moisture, Pressure, Wind) to test the AI classifier.</li>
+                    <li><strong>Why It Changed (XAI):</strong> Click <em>Why It Changed</em> to see the exact atmospheric factors that adjusted the forecast.</li>
+                    <li><strong>Historical Deluges:</strong> In <em>Historical Replay</em>, re-live the 2015 Chennai deluge and 2023 Cyclone Michaung.</li>
                   </ul>
                 </div>
               )}
@@ -302,7 +312,7 @@ export const TopStatusBar: React.FC<TopStatusBarProps> = ({
                     onClick={() => setShowPitchModal(false)}
                     className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold"
                   >
-                    Got It, Start Demo!
+                    Got It, Explore Platform!
                   </button>
                 )}
               </div>
