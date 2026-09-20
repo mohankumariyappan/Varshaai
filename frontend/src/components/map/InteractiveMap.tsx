@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip, useMap } from 'react-leaflet';
-import { Layers, Sliders, Eye, AlertTriangle, ArrowRightLeft, Info } from 'lucide-react';
+import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from 'react-leaflet';
+import { Layers, Eye, EyeOff, ArrowRightLeft, Map, MapPin } from 'lucide-react';
 import { MapFeatureProperties, WeatherRegime } from '../../types';
 
 export type MapLayerType = 
@@ -10,6 +10,8 @@ export type MapLayerType =
   | 'heavy_prob' 
   | 'regime' 
   | 'forecast_error';
+
+export type BasemapStyle = 'dark_states' | 'topographic' | 'satellite';
 
 interface InteractiveMapProps {
   features: Array<{
@@ -73,6 +75,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   const [activeLayer, setActiveLayer] = useState<MapLayerType>('ai_corrected');
   const [splitSliderPos, setSplitSliderPos] = useState<number>(50); // 0 = 100% NWP, 100 = 100% AI Corrected
   const [isSliderActive, setIsSliderActive] = useState<boolean>(false);
+  const [basemapStyle, setBasemapStyle] = useState<BasemapStyle>('dark_states');
+  const [showDistrictLabels, setShowDistrictLabels] = useState<boolean>(true);
 
   // Center on central/southern India
   const centerPosition: [number, number] = [17.5, 78.5];
@@ -80,7 +84,6 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   const getMarkerColor = (props: MapFeatureProperties, lon: number): string => {
     if (isSliderActive && enableSplitSlider) {
       // Functional split slider: Map coordinates across lon 68 (West) to 96 (East)
-      // Normalized longitude from 0 to 100
       const normLon = ((lon - 68) / (96 - 68)) * 100;
       if (normLon < splitSliderPos) {
         // Left of split: RAW NWP
@@ -116,60 +119,114 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     return Math.max(8, Math.min(18, 7 + (rain / 120) * 11));
   };
 
-  return (
-    <div className="relative w-full h-full min-h-[480px] flex flex-col rounded-xl overflow-hidden border border-slate-800 bg-slate-950 shadow-2xl">
-      {/* Top Map Layer Control Bar */}
-      <div className="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 p-2.5 flex flex-wrap items-center justify-between gap-3 z-10">
-        <div className="flex items-center gap-2">
-          <Layers className="w-4 h-4 text-cyan-400" />
-          <span className="text-xs font-bold text-slate-300 tracking-wide uppercase">METEOROLOGICAL LAYERS:</span>
-          
-          <div className="flex flex-wrap items-center gap-1">
-            {[
-              { id: 'ai_corrected', label: 'AI Corrected', color: 'border-cyan-500' },
-              { id: 'raw_nwp', label: 'Raw NWP', color: 'border-amber-500' },
-              { id: 'observed', label: 'Observed Truth', color: 'border-emerald-500' },
-              { id: 'heavy_prob', label: 'Heavy Rain Prob', color: 'border-rose-500' },
-              { id: 'regime', label: 'Weather Regime', color: 'border-purple-500' },
-              { id: 'forecast_error', label: 'NWP Error (Obs-NWP)', color: 'border-indigo-500' }
-            ].map((layer) => (
-              <button
-                key={layer.id}
-                onClick={() => {
-                  setActiveLayer(layer.id as MapLayerType);
-                  setIsSliderActive(false);
-                }}
-                className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-all border ${
-                  activeLayer === layer.id && !isSliderActive
-                    ? 'bg-cyan-950 text-cyan-300 border-cyan-500 shadow-sm'
-                    : 'bg-slate-800/80 text-slate-400 border-slate-700 hover:text-slate-200'
-                }`}
-              >
-                {layer.label}
-              </button>
-            ))}
-          </div>
-        </div>
+  // Find currently active district details
+  const activeFeature = features.find(f => f.properties.district_id === selectedDistrict)?.properties;
 
-        {/* Forecast Split-Wipe Slider Toggle */}
-        {enableSplitSlider && (
-          <div className="flex items-center gap-2 bg-slate-950 px-2.5 py-1 rounded-md border border-slate-800">
-            <ArrowRightLeft className="w-3.5 h-3.5 text-cyan-400" />
+  return (
+    <div className="relative w-full h-full min-h-[520px] flex flex-col rounded-xl overflow-hidden border border-slate-800 bg-slate-950 shadow-2xl">
+      {/* Top Map Layer & Style Control Bar */}
+      <div className="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 p-2.5 flex flex-wrap items-center justify-between gap-2.5 z-10">
+        {/* Layer Selector */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex items-center gap-1 text-slate-300 mr-1">
+            <Layers className="w-4 h-4 text-cyan-400" />
+            <span className="text-[11px] font-bold uppercase tracking-wider hidden sm:inline">DATA LAYER:</span>
+          </div>
+          
+          {[
+            { id: 'ai_corrected', label: 'AI Corrected' },
+            { id: 'raw_nwp', label: 'Raw NWP' },
+            { id: 'observed', label: 'Observed Truth' },
+            { id: 'heavy_prob', label: 'Heavy Rain Prob' },
+            { id: 'regime', label: 'Weather Regime' },
+            { id: 'forecast_error', label: 'NWP Error' }
+          ].map((layer) => (
             <button
-              onClick={() => setIsSliderActive(!isSliderActive)}
-              className={`text-[11px] font-bold px-2 py-0.5 rounded transition-all ${
-                isSliderActive
-                  ? 'bg-gradient-to-r from-amber-500 to-cyan-500 text-slate-950 font-black'
-                  : 'text-slate-300 hover:text-white'
+              key={layer.id}
+              onClick={() => {
+                setActiveLayer(layer.id as MapLayerType);
+                setIsSliderActive(false);
+              }}
+              className={`px-2 py-1 text-[11px] font-semibold rounded-md transition-all border ${
+                activeLayer === layer.id && !isSliderActive
+                  ? 'bg-cyan-950 text-cyan-300 border-cyan-500 shadow-sm'
+                  : 'bg-slate-800/80 text-slate-400 border-slate-700 hover:text-slate-200'
               }`}
             >
-              {isSliderActive ? 'SPLIT SLIDER: ACTIVE' : 'SPLIT NWP vs AI SLIDER'}
+              {layer.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Right Tools: Basemap Switcher & District Labels Toggle */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Basemap Switcher */}
+          <div className="flex items-center gap-1 bg-slate-950 px-2 py-1 rounded-md border border-slate-800 text-[11px]">
+            <Map className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="text-[10px] text-slate-400 uppercase font-bold mr-1">VIEW:</span>
+            <button
+              onClick={() => setBasemapStyle('dark_states')}
+              className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all ${
+                basemapStyle === 'dark_states'
+                  ? 'bg-cyan-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Dark + States
+            </button>
+            <button
+              onClick={() => setBasemapStyle('topographic')}
+              className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all ${
+                basemapStyle === 'topographic'
+                  ? 'bg-cyan-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Terrain &amp; Districts
+            </button>
+            <button
+              onClick={() => setBasemapStyle('satellite')}
+              className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all ${
+                basemapStyle === 'satellite'
+                  ? 'bg-cyan-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Satellite
             </button>
           </div>
-        )}
+
+          {/* District Labels Toggle */}
+          <button
+            onClick={() => setShowDistrictLabels(!showDistrictLabels)}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold border transition-all ${
+              showDistrictLabels
+                ? 'bg-cyan-950 text-cyan-300 border-cyan-500/80 shadow-sm'
+                : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200'
+            }`}
+          >
+            {showDistrictLabels ? <Eye className="w-3.5 h-3.5 text-cyan-400" /> : <EyeOff className="w-3.5 h-3.5 text-slate-400" />}
+            <span>LABELS: {showDistrictLabels ? 'ON' : 'OFF'}</span>
+          </button>
+
+          {/* Split Slider Toggle */}
+          {enableSplitSlider && (
+            <button
+              onClick={() => setIsSliderActive(!isSliderActive)}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold border transition-all ${
+                isSliderActive
+                  ? 'bg-gradient-to-r from-amber-500 to-cyan-500 text-slate-950 border-amber-400 font-black shadow-md'
+                  : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
+              }`}
+            >
+              <ArrowRightLeft className="w-3.5 h-3.5" />
+              <span>{isSliderActive ? 'SPLIT: ACTIVE' : 'SPLIT NWP/AI'}</span>
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Floating Interactive Functional Split Slider Bar */}
+      {/* Floating Interactive Split Slider Bar */}
       {isSliderActive && enableSplitSlider && (
         <div className="absolute top-14 left-1/2 -translate-x-1/2 z-20 bg-slate-900/95 border border-cyan-500/60 shadow-2xl rounded-full px-5 py-2 flex items-center gap-4 text-xs font-semibold backdrop-blur-md max-w-[92%] w-[460px]">
           <span className="text-amber-400 font-bold whitespace-nowrap">RAW NWP ◄</span>
@@ -192,14 +249,48 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           center={centerPosition}
           zoom={5}
           scrollWheelZoom={true}
-          style={{ height: '100%', width: '100%', minHeight: '420px' }}
+          style={{ height: '100%', width: '100%', minHeight: '440px' }}
         >
-          {/* Esri World Dark Gray Basemap (No API key required, zero watermarks) */}
-          <TileLayer
-            attribution='&copy; <a href="https://www.esri.com/">Esri</a>, HERE, Garmin, &copy; OpenStreetMap'
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
-            maxZoom={16}
-          />
+          {/* Basemap Layers (No API keys required, zero watermarks) */}
+          {basemapStyle === 'dark_states' && (
+            <>
+              {/* Esri World Dark Gray Base */}
+              <TileLayer
+                attribution='&copy; <a href="https://www.esri.com/">Esri</a>, HERE, Garmin, &copy; OpenStreetMap'
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+                maxZoom={16}
+              />
+              {/* Esri World Dark Gray Reference Layer: State boundaries, State names, major cities and district regions */}
+              <TileLayer
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
+                maxZoom={16}
+                opacity={0.95}
+              />
+            </>
+          )}
+
+          {basemapStyle === 'topographic' && (
+            <TileLayer
+              attribution='&copy; <a href="https://www.esri.com/">Esri</a> &mdash; DeLorme, USGS, NPS'
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+              maxZoom={16}
+            />
+          )}
+
+          {basemapStyle === 'satellite' && (
+            <>
+              <TileLayer
+                attribution='&copy; <a href="https://www.esri.com/">Esri</a>, Maxar, Earthstar Geographics'
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                maxZoom={16}
+              />
+              <TileLayer
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+                maxZoom={16}
+                opacity={0.95}
+              />
+            </>
+          )}
 
           {features.map((f) => {
             const [lon, lat] = f.geometry.coordinates;
@@ -207,97 +298,142 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             const isSelected = p.district_id === selectedDistrict;
             const color = getMarkerColor(p, lon);
             const radius = getMarkerRadius(p);
+            const rainVal = activeLayer === 'raw_nwp' ? p.raw_nwp_rainfall : p.ai_corrected_rainfall;
 
             return (
-              <CircleMarker
-                key={p.district_id}
-                center={[lat, lon]}
-                radius={radius}
-                pathOptions={{
-                  fillColor: color,
-                  fillOpacity: 0.85,
-                  color: isSelected ? '#ffffff' : color,
-                  weight: isSelected ? 3 : 1.5
-                }}
-                eventHandlers={{
-                  click: () => onSelectDistrict(p.district_id)
-                }}
-              >
-                <Tooltip direction="top" offset={[0, -10]} opacity={0.95}>
-                  <div className="text-xs p-1">
-                    <p className="font-bold text-slate-100">{p.district_name}</p>
-                    <p className="text-cyan-400 font-medium">{p.weather_regime}</p>
-                    <p className="text-slate-300">
-                      AI Corrected: <span className="font-bold text-white">{p.ai_corrected_rainfall} mm</span>
-                    </p>
-                    <p className="text-amber-400">
-                      Raw NWP: <span className="font-bold">{p.raw_nwp_rainfall} mm</span>
-                    </p>
-                  </div>
-                </Tooltip>
+              <React.Fragment key={p.district_id}>
+                {/* Highlight Ring for Selected District */}
+                {isSelected && (
+                  <CircleMarker
+                    center={[lat, lon]}
+                    radius={radius + 8}
+                    pathOptions={{
+                      fillColor: color,
+                      fillOpacity: 0.15,
+                      color: '#38bdf8',
+                      weight: 2,
+                      dashArray: '4, 4'
+                    }}
+                  />
+                )}
 
-                <Popup>
-                  <div className="text-xs p-2 min-w-[210px] text-slate-200">
-                    <div className="flex items-center justify-between border-b border-slate-700 pb-1.5 mb-2">
-                      <h4 className="font-bold text-sm text-cyan-400">{p.district_name}</h4>
-                      <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-mono">
-                        {p.state}
+                <CircleMarker
+                  center={[lat, lon]}
+                  radius={radius}
+                  pathOptions={{
+                    fillColor: color,
+                    fillOpacity: 0.9,
+                    color: isSelected ? '#ffffff' : color,
+                    weight: isSelected ? 3 : 1.5
+                  }}
+                  eventHandlers={{
+                    click: () => onSelectDistrict(p.district_id)
+                  }}
+                >
+                  {/* Permanent or Hover Floating District Badge */}
+                  <Tooltip 
+                    direction="bottom" 
+                    offset={[0, 8]} 
+                    opacity={0.95}
+                    permanent={showDistrictLabels}
+                  >
+                    <div className="text-[11px] font-bold px-2 py-0.5 rounded shadow-lg border border-slate-700 bg-slate-950/95 text-slate-100 flex items-center gap-1.5 whitespace-nowrap">
+                      <span>{p.district_name}</span>
+                      <span className="text-[9px] text-cyan-400 font-mono font-semibold">({p.state.slice(0, 2).toUpperCase()})</span>
+                      <span
+                        className="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold"
+                        style={{ backgroundColor: color + '33', color: color }}
+                      >
+                        {rainVal} mm
                       </span>
                     </div>
+                  </Tooltip>
 
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Weather Regime:</span>
-                        <span className="font-bold text-purple-300">{p.weather_regime}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Regime Confidence:</span>
-                        <span className="font-bold text-emerald-400">{Math.round(p.regime_confidence * 100)}%</span>
-                      </div>
-                      <div className="flex justify-between border-t border-slate-800 pt-1">
-                        <span className="text-slate-400">Raw NWP:</span>
-                        <span className="font-bold text-amber-400">{p.raw_nwp_rainfall} mm</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">VARSHAAI AI:</span>
-                        <span className="font-bold text-cyan-400">{p.ai_corrected_rainfall} mm</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Correction Bias:</span>
-                        <span className={`font-bold ${p.ai_corrected_rainfall >= p.raw_nwp_rainfall ? 'text-emerald-400' : 'text-rose-400'}`}>
-                          {p.ai_corrected_rainfall >= p.raw_nwp_rainfall ? '+' : ''}
-                          {(p.ai_corrected_rainfall - p.raw_nwp_rainfall).toFixed(1)} mm
-                        </span>
-                      </div>
-                      <div className="flex justify-between border-t border-slate-800 pt-1">
-                        <span className="text-slate-400">Heavy Rain Prob:</span>
-                        <span className="font-bold text-rose-400">{Math.round(p.heavy_rain_probability * 100)}%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Risk Level:</span>
-                        <span className={`font-bold px-1.5 py-0.2 rounded text-[10px] ${
-                          p.alert_level === 'RED' ? 'bg-red-950 text-red-400 border border-red-800' :
-                          p.alert_level === 'ORANGE' ? 'bg-orange-950 text-orange-400 border border-orange-800' :
-                          p.alert_level === 'YELLOW' ? 'bg-yellow-950 text-yellow-400 border border-yellow-800' :
-                          'bg-emerald-950 text-emerald-400 border border-emerald-800'
+                  <Popup>
+                    <div className="text-xs p-2 min-w-[220px] text-slate-200">
+                      <div className="flex items-center justify-between border-b border-slate-700 pb-1.5 mb-2">
+                        <div>
+                          <h4 className="font-bold text-sm text-cyan-400">{p.district_name}</h4>
+                          <span className="text-[10px] text-slate-400">
+                            {p.state} • {p.subdivision}
+                          </span>
+                        </div>
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
+                          p.alert_level === 'RED' ? 'bg-red-950 text-red-400 border-red-800' :
+                          p.alert_level === 'ORANGE' ? 'bg-orange-950 text-orange-400 border-orange-800' :
+                          p.alert_level === 'YELLOW' ? 'bg-yellow-950 text-yellow-400 border-yellow-800' :
+                          'bg-emerald-950 text-emerald-400 border-emerald-800'
                         }`}>
                           {p.alert_level}
                         </span>
                       </div>
-                    </div>
 
-                    <button
-                      onClick={() => onSelectDistrict(p.district_id)}
-                      className="mt-3 w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-1 px-2 rounded text-[11px] transition-all"
-                    >
-                      OPEN DISTRICT DIGITAL TWIN
-                    </button>
-                  </div>
-                </Popup>
-              </CircleMarker>
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">Active Regime:</span>
+                          <span className="font-bold text-purple-300">{p.weather_regime}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">Regime Confidence:</span>
+                          <span className="font-bold text-emerald-400">{Math.round(p.regime_confidence * 100)}%</span>
+                        </div>
+                        <div className="flex justify-between border-t border-slate-800 pt-1">
+                          <span className="text-slate-400">Raw NWP Forecast:</span>
+                          <span className="font-bold text-amber-400">{p.raw_nwp_rainfall} mm</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">VARSHAAI AI Corrected:</span>
+                          <span className="font-bold text-cyan-400">{p.ai_corrected_rainfall} mm</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">NWP Model Bias Error:</span>
+                          <span className={`font-bold ${p.ai_corrected_rainfall >= p.raw_nwp_rainfall ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            {p.ai_corrected_rainfall >= p.raw_nwp_rainfall ? '+' : ''}
+                            {(p.ai_corrected_rainfall - p.raw_nwp_rainfall).toFixed(1)} mm
+                          </span>
+                        </div>
+                        <div className="flex justify-between border-t border-slate-800 pt-1">
+                          <span className="text-slate-400">Heavy Rain Risk (&gt;64mm):</span>
+                          <span className="font-bold text-rose-400">{Math.round(p.heavy_rain_probability * 100)}%</span>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => onSelectDistrict(p.district_id)}
+                        className="mt-3 w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-1.5 px-2 rounded text-[11px] transition-all shadow"
+                      >
+                        VIEW FULL DISTRICT TWIN &rarr;
+                      </button>
+                    </div>
+                  </Popup>
+                </CircleMarker>
+              </React.Fragment>
             );
           })}
         </MapContainer>
+
+        {/* Selected District Quick Floating Telemetry Badge */}
+        {activeFeature && (
+          <div className="absolute bottom-3 left-3 z-20 bg-slate-900/90 backdrop-blur-md border border-slate-800 p-2.5 rounded-lg shadow-xl text-xs max-w-[280px]">
+            <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-1 mb-1.5">
+              <div className="flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="font-bold text-white">{activeFeature.district_name}, {activeFeature.state}</span>
+              </div>
+              <span className="text-[10px] text-cyan-400 font-mono font-bold">+{leadTime}h</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-[11px]">
+              <div>
+                <span className="text-slate-400 block text-[10px]">AI CORRECTED</span>
+                <span className="font-bold text-cyan-400 font-mono text-sm">{activeFeature.ai_corrected_rainfall} mm</span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px]">RAW NWP</span>
+                <span className="font-bold text-amber-400 font-mono text-sm">{activeFeature.raw_nwp_rainfall} mm</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Bottom Meteorological Scale Legend & Time Controller */}
@@ -343,7 +479,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           )}
         </div>
 
-        {/* Time Slider */}
+        {/* Lead Time Selector */}
         <div className="flex items-center gap-2">
           <span className="text-[11px] text-slate-400 font-bold uppercase">FORECAST LEAD TIME:</span>
           <div className="flex items-center gap-1">
