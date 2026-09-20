@@ -1,0 +1,53 @@
+{
+  "continuous": {
+    "rmse": {
+      "nwp": 27.27,
+      "varshaai": 14.35,
+      "unit": "mm"
+    },
+    "mae": {
+      "nwp": 21.3,
+      "varshaai": 10.28,
+      "unit": "mm"
+    },
+    "bias": {
+      "nwp": 19.42,
+      "varshaai": -0.18,
+      "unit": "mm"
+    },
+    "correlation": {
+      "nwp": 0.957,
+      "varshaai": 0.96,
+      "unit": "r"
+    }
+  },
+  "categorical": {
+    "csi": {
+      "nwp": 0.714,
+      "varshaai": 0.782,
+      "unit": "index"
+    },
+    "pod": {
+      "nwp": 0.991,
+      "varshaai": 0.873,
+      "unit": "rate"
+    },
+    "far": {
+      "nwp": 0.282,
+      "varshaai": 0.117,
+      "unit": "ratio"
+    }
+  },
+  "probabilistic": {
+    "brier_score": {
+      "nwp": 0.285,
+      "varshaai": 0.069
+    },
+    "fss": {
+      "nwp": 0.58,
+      "varshaai": 0.81
+    }
+  },
+  "test_sample_count": 1050,
+  "regime_classifier_accuracy": 0.932
+}
