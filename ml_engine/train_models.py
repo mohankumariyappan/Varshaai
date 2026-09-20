@@ -12,9 +12,15 @@ Trains:
 import os
 import json
 import pickle
+import sys
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingRegressor, GradientBoostingClassifier
 from sklearn.metrics import mean_squared_error, mean_absolute_error, brier_score_loss, confusion_matrix
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+if BASE_DIR not in sys.path:
+    sys.path.append(BASE_DIR)
+
 from data_generator import generate_meteorological_dataset, REGIMES, DISTRICTS
 
 FEATURES_REGIME = [
@@ -36,11 +42,13 @@ def extract_features(records, feature_names):
 
 def train_and_evaluate():
     print("Generating meteorological benchmark dataset...")
-    os.makedirs("ml_engine/data", exist_ok=True)
-    os.makedirs("ml_engine/models", exist_ok=True)
+    data_dir = os.path.join(BASE_DIR, "data")
+    models_dir = os.path.join(BASE_DIR, "models")
+    os.makedirs(data_dir, exist_ok=True)
+    os.makedirs(models_dir, exist_ok=True)
     
     dataset = generate_meteorological_dataset(n_samples=7000, random_seed=42)
-    with open("ml_engine/data/benchmark.json", "w") as f:
+    with open(os.path.join(data_dir, "benchmark.json"), "w") as f:
         json.dump(dataset, f)
         
     train_records = dataset["train"]
@@ -263,13 +271,13 @@ def train_and_evaluate():
         "districts": DISTRICTS
     }
     
-    with open("ml_engine/models/bundle.pkl", "wb") as f:
+    with open(os.path.join(models_dir, "bundle.pkl"), "wb") as f:
         pickle.dump(models_bundle, f)
         
-    with open("ml_engine/data/verification_results.json", "w") as f:
+    with open(os.path.join(data_dir, "verification_results.json"), "w") as f:
         json.dump(verification_results, f, indent=2)
         
-    print("\nAll models and verification results successfully saved to ml_engine/models/bundle.pkl")
+    print(f"\nAll models and verification results successfully saved to {models_dir}/bundle.pkl")
     return verification_results
 
 
