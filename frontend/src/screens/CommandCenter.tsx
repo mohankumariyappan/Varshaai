@@ -244,6 +244,46 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
         </div>
       </div>
 
+      {/* 3-Step Innovation Flow: Clear, Simple, Executive Storytelling */}
+      <div className="bg-gradient-to-r from-slate-900 via-slate-950 to-slate-900 border border-slate-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 shadow-md">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+          <span className="text-xs font-bold text-slate-200 uppercase tracking-wide">
+            End-To-End Disaster Response Pipeline:
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs font-semibold">
+          {/* Step 1 */}
+          <div className="flex items-center gap-1.5 text-cyan-300 bg-cyan-950/60 px-2.5 py-1 rounded-md border border-cyan-800/40">
+            <span className="font-mono text-[10px] bg-cyan-500/20 px-1.5 py-0.2 rounded font-bold">Step 1</span>
+            <span>AI Regime Correction</span>
+          </div>
+          <span className="text-slate-600">→</span>
+
+          {/* Step 2 */}
+          <button 
+            onClick={() => onNavigateScreen('urban-inundation')}
+            className="flex items-center gap-1.5 text-blue-300 hover:text-white bg-blue-950/60 hover:bg-blue-900/60 px-2.5 py-1 rounded-md border border-blue-800/40 transition group"
+          >
+            <span className="font-mono text-[10px] bg-blue-500/20 px-1.5 py-0.2 rounded font-bold">Step 2</span>
+            <span>Street &amp; Dam Digital Twin</span>
+            <span className="text-[10px] text-cyan-400 group-hover:translate-x-0.5 transition-transform">→</span>
+          </button>
+          <span className="text-slate-600">→</span>
+
+          {/* Step 3 */}
+          <button 
+            onClick={() => onNavigateScreen('emergency-dispatch')}
+            className="flex items-center gap-1.5 text-rose-300 hover:text-white bg-rose-950/60 hover:bg-rose-900/60 px-2.5 py-1 rounded-md border border-rose-800/40 transition group"
+          >
+            <span className="font-mono text-[10px] bg-rose-500/20 px-1.5 py-0.2 rounded font-bold">Step 3</span>
+            <span>NDMA CAP v1.2 Broadcast</span>
+            <span className="text-[10px] text-rose-400 group-hover:translate-x-0.5 transition-transform">→</span>
+          </button>
+        </div>
+      </div>
+
       {/* Main Map & District Twin Overview Row */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Left Map: 8 Cols */}

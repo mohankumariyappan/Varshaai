@@ -3,7 +3,8 @@ import {
   CloudRain, 
   Clock, 
   MapPin, 
-  Flame
+  Flame,
+  Zap 
 } from 'lucide-react';
 
 interface TopStatusBarProps {
@@ -13,6 +14,8 @@ interface TopStatusBarProps {
   leadTime: number;
   onLeadTimeChange: (lt: number) => void;
   extremeMode: boolean;
+  isSimulating?: boolean;
+  onToggleSimulation?: () => void;
 }
 
 export const TopStatusBar: React.FC<TopStatusBarProps> = ({
@@ -21,7 +24,9 @@ export const TopStatusBar: React.FC<TopStatusBarProps> = ({
   districts,
   leadTime,
   onLeadTimeChange,
-  extremeMode
+  extremeMode,
+  isSimulating,
+  onToggleSimulation
 }) => {
   const [timeStr, setTimeStr] = useState('');
 
@@ -66,9 +71,24 @@ export const TopStatusBar: React.FC<TopStatusBarProps> = ({
           </div>
         </div>
 
+        {/* 1-Click SIH Live Demo Button */}
+        {onToggleSimulation && (
+          <button
+            onClick={onToggleSimulation}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all border shadow-lg active:scale-95 ${
+              isSimulating
+                ? 'bg-rose-950 text-rose-300 border-rose-500 animate-pulse shadow-rose-950/60 ring-2 ring-rose-500/50'
+                : 'bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-rose-500/20 text-amber-300 hover:text-white hover:border-amber-400 border-amber-500/50'
+            }`}
+            title="Click to toggle a live demonstration of an extreme cyclone / monsoon rain surge"
+          >
+            <Zap className={`w-3.5 h-3.5 ${isSimulating ? 'text-rose-400 fill-rose-400 animate-spin' : 'text-amber-400 fill-amber-400'}`} />
+            <span>{isSimulating ? '🚨 LIVE DEMO: CYCLONE SURGE ACTIVE (CLICK TO RESET)' : '⚡ 1-Click SIH Demo: Simulate Storm'}</span>
+          </button>
+        )}
 
         {/* Extreme Mode Banner if active */}
-        {extremeMode && (
+        {extremeMode && !isSimulating && (
           <div className="hidden lg:flex items-center gap-2 bg-red-950/80 border border-red-500 text-red-300 px-3 py-1 rounded-md text-xs font-semibold animate-pulse shadow-lg shadow-red-950/50">
             <Flame className="w-4 h-4 text-red-400" />
             <span>EXTREME RAIN MONITORING ACTIVE</span>

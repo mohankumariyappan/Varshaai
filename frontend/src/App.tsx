@@ -11,6 +11,9 @@ import { Explainability } from './screens/Explainability';
 import { SkillCenter } from './screens/SkillCenter';
 import { HistoricalReplay } from './screens/HistoricalReplay';
 import { ModelHealth } from './screens/ModelHealth';
+import { UrbanInundation } from './screens/UrbanInundation';
+import { EmergencyDispatch } from './screens/EmergencyDispatch';
+import { MeteorologistCopilot } from './components/copilot/MeteorologistCopilot';
 import { api } from './services/api';
 import { DistrictForecast, MapFeatureProperties } from './types';
 
@@ -67,11 +70,30 @@ export function App() {
     }
   }, [selectedDistrict, leadTime, customWeather]);
 
+  const [isSimulating, setIsSimulating] = useState<boolean>(false);
+
+  const handleToggleSimulation = () => {
+    if (isSimulating) {
+      setIsSimulating(false);
+      setCustomWeather(null);
+    } else {
+      setIsSimulating(true);
+      setCustomWeather({
+        pressure_anomaly: -16.8,
+        moisture_flux: 540.0,
+        wind_convergence: 8.8,
+        humidity_850: 96.0,
+        cape: 2800.0,
+        lead_time: leadTime
+      });
+    }
+  };
+
   const handleSimulateWeather = (params: any) => {
     setCustomWeather(params);
   };
 
-  const isExtremeActive = mapFeatures.some(f => f.properties.alert_level === 'RED');
+  const isExtremeActive = isSimulating || mapFeatures.some(f => f.properties.alert_level === 'RED');
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
@@ -83,6 +105,8 @@ export function App() {
         leadTime={leadTime}
         onLeadTimeChange={setLeadTime}
         extremeMode={isExtremeActive}
+        isSimulating={isSimulating}
+        onToggleSimulation={handleToggleSimulation}
       />
 
       {/* 2. Navigation Tabs (All 10 Screens) */}
@@ -112,6 +136,20 @@ export function App() {
             onSelectDistrict={setSelectedDistrict}
             leadTime={leadTime}
             onLeadTimeChange={setLeadTime}
+          />
+        )}
+
+        {activeScreen === 'urban-inundation' && (
+          <UrbanInundation
+            districtId={selectedDistrict}
+            leadTime={leadTime}
+          />
+        )}
+
+        {activeScreen === 'emergency-dispatch' && (
+          <EmergencyDispatch
+            districtId={selectedDistrict}
+            leadTime={leadTime}
           />
         )}
 
@@ -166,6 +204,12 @@ export function App() {
           <ModelHealth />
         )}
       </main>
+
+      {/* Floating Grounded AI Meteorologist Copilot */}
+      <MeteorologistCopilot
+        districtId={selectedDistrict}
+        leadTime={leadTime}
+      />
 
       {/* Footer */}
       <footer className="bg-slate-950 border-t border-slate-900 px-4 py-3 text-center text-xs text-slate-500 flex flex-wrap items-center justify-between gap-2">

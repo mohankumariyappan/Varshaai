@@ -76,5 +76,52 @@ export const api = {
     });
     if (!res.ok) throw new Error('Failed to run custom prediction');
     return res.json();
+  },
+
+  // Next-Gen Urban Inundation & Dam Twin APIs
+  async getUrbanInundation(districtId: string, leadTime: number = 24): Promise<any> {
+    const res = await fetch(`${BASE_URL}/hydro/inundation/${districtId}?lead_time=${leadTime}`);
+    if (!res.ok) throw new Error('Failed to fetch urban inundation data');
+    return res.json();
+  },
+
+  async getReservoirs(districtId: string, leadTime: number = 24): Promise<any> {
+    const res = await fetch(`${BASE_URL}/hydro/reservoirs/${districtId}?lead_time=${leadTime}`);
+    if (!res.ok) throw new Error('Failed to fetch reservoir inflow data');
+    return res.json();
+  },
+
+  // Next-Gen NDMA CAP Alerts & Multilingual APIs
+  async getCAPAlert(districtId: string, leadTime: number = 24): Promise<any> {
+    const res = await fetch(`${BASE_URL}/alerts/cap/${districtId}?lead_time=${leadTime}`);
+    if (!res.ok) throw new Error('Failed to fetch CAP alert payload');
+    return res.json();
+  },
+
+  async getMultilingualBroadcasts(districtId: string, leadTime: number = 24): Promise<any> {
+    const res = await fetch(`${BASE_URL}/alerts/multilingual/${districtId}?lead_time=${leadTime}`);
+    if (!res.ok) throw new Error('Failed to fetch multilingual broadcasts');
+    return res.json();
+  },
+
+  async getDisasterLogistics(districtId: string, leadTime: number = 24): Promise<any> {
+    const res = await fetch(`${BASE_URL}/alerts/logistics/${districtId}?lead_time=${leadTime}`);
+    if (!res.ok) throw new Error('Failed to fetch disaster logistics');
+    return res.json();
+  },
+
+  // Next-Gen AI Meteorologist Copilot API
+  async queryCopilot(query: string, districtId: string = 'thiruvallur', leadTime: number = 24): Promise<any> {
+    const res = await fetch(`${BASE_URL}/copilot/query`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query,
+        district_id: districtId,
+        lead_time: leadTime
+      })
+    });
+    if (!res.ok) throw new Error('Failed to query AI Meteorologist Copilot');
+    return res.json();
   }
 };

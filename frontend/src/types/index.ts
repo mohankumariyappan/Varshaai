@@ -207,3 +207,125 @@ export interface ModelHealthResponse {
     drift_score_p_value: number;
   };
 }
+
+// Next-Gen Urban Inundation & Dam Twin Types
+export interface InundationHotspot {
+  location: string;
+  type: string;
+  depth_cm: number;
+  status: 'CLEAR' | 'CAUTION' | 'IMPASSABLE';
+  trafficability: string;
+  badge_color: 'GREEN' | 'YELLOW' | 'RED';
+  submersible_pumps_needed: number;
+}
+
+export interface UrbanInundationResponse {
+  district_id: string;
+  city_name: string;
+  lead_time: number;
+  corrected_rainfall_mm: number;
+  detected_regime: string;
+  soil_saturation_pct: number;
+  overall_inundation_severity: 'LOW' | 'MODERATE' | 'EXTREME';
+  impassable_routes_count: number;
+  caution_routes_count: number;
+  total_monitored_points: number;
+  hotspots: InundationHotspot[];
+  recession_estimated_hrs: number;
+  de_watering_action: string;
+}
+
+export interface ReservoirItem {
+  name: string;
+  full_capacity_tmc: number;
+  current_storage_tmc: number;
+  storage_percentage: number;
+  current_level_ft: number;
+  max_level_ft: number;
+  projected_inflow_cumecs: number;
+  worst_case_inflow_cumecs: number;
+  recommended_discharge_cumecs: number;
+  operational_directive: string;
+  danger_lead_time_hrs: number;
+  alert_level: 'GREEN' | 'ORANGE' | 'RED' | 'HIGH ALERT' | 'WATCH' | 'CRITICAL';
+}
+
+export interface ReservoirsResponse {
+  district_id: string;
+  lead_time: number;
+  rainfall_driver_mm: number;
+  catchment_regime: string;
+  reservoirs: ReservoirItem[];
+  downstream_floodplain_warning: string;
+}
+
+// Next-Gen NDMA CAP Alert & Logistics Types
+export interface CAPAlertResponse {
+  identifier: string;
+  format: string;
+  sent_utc: string;
+  status: string;
+  msgType: string;
+  scope: string;
+  event: string;
+  severity: string;
+  urgency: string;
+  certainty: string;
+  headline: string;
+  description: string;
+  instruction: string;
+  district: string;
+  state: string;
+  coordinates: { lat: number; lon: number };
+  xml_payload: string;
+}
+
+export interface MultilingualBroadcastsResponse {
+  district_id: string;
+  alert_level: string;
+  corrected_rainfall_mm: number;
+  detected_regime: string;
+  broadcasts: Record<string, { language: string; script: string; text: string }>;
+}
+
+export interface DisasterLogisticsResponse {
+  district_id: string;
+  district_name: string;
+  alert_level: string;
+  ndrf_battalion: {
+    teams_deployed: number;
+    personnel_count: number;
+    staging_base: string;
+    readiness_state: string;
+  };
+  heavy_equipment: {
+    dewatering_pumps_100hp: number;
+    inflatable_inundation_boats: number;
+    generator_sets_kva: number;
+    mobile_medical_vans: number;
+  };
+  shelter_infrastructure: {
+    active_shelters: number;
+    total_bed_capacity: number;
+    current_occupancy_pct: number;
+    food_packets_prepared: number;
+  };
+}
+
+// Next-Gen AI Meteorologist Copilot
+export interface CopilotQueryResponse {
+  query: string;
+  district_id: string;
+  district_name: string;
+  lead_time: number;
+  category: string;
+  answer_markdown: string;
+  grounding_telemetry: {
+    regime: string;
+    corrected_rain_mm: number;
+    nwp_bias_mm: number;
+    alert_level: string;
+    uncertainty_interval: string;
+  };
+}
+

@@ -25,6 +25,9 @@ from routes.explain import router as explain_router
 from routes.verification import router as verification_router
 from routes.historical import router as historical_router
 from routes.health import router as health_router
+from routes.hydro import router as hydro_router
+from routes.emergency import router as emergency_router
+from routes.copilot import router as copilot_router
 
 app = FastAPI(
     title="VARSHAAI — Regime-Aware Rainfall Intelligence Platform",
@@ -50,6 +53,9 @@ app.include_router(explain_router)
 app.include_router(verification_router)
 app.include_router(historical_router)
 app.include_router(health_router)
+app.include_router(hydro_router)
+app.include_router(emergency_router)
+app.include_router(copilot_router)
 
 @app.get("/api")
 def api_root():
