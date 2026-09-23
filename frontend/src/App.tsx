@@ -79,11 +79,13 @@ export function App() {
     } else {
       setIsSimulating(true);
       setCustomWeather({
-        pressure_anomaly: -16.8,
-        moisture_flux: 540.0,
-        wind_convergence: 8.8,
-        humidity_850: 96.0,
-        cape: 2800.0,
+        is_extreme_simulation: true,
+        pressure_anomaly: -18.5,
+        moisture_flux: 560.0,
+        wind_convergence: 9.2,
+        humidity_850: 98.0,
+        cape: 3100.0,
+        nwp_rainfall: 42.0,
         lead_time: leadTime
       });
     }

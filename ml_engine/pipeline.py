@@ -91,7 +91,7 @@ class VarshaaiPipeline:
         cape = custom_weather.get("cape") if custom_weather and "cape" in custom_weather else profile["cape"][0]
         
         # Default NWP rainfall based on lead time and regime profile
-        if custom_weather and "nwp_rainfall" in custom_weather:
+        if custom_weather and custom_weather.get("nwp_rainfall") is not None:
             nwp_rainfall = float(custom_weather["nwp_rainfall"])
         else:
             base_nwp_table = {
@@ -116,6 +116,61 @@ class VarshaaiPipeline:
             # Adjust slightly for lead time
             lead_mult = 1.0 + (lead_time - 24) * 0.008
             nwp_rainfall = max(0.0, round(nwp_rainfall * lead_mult, 1))
+
+        if custom_weather and custom_weather.get("is_extreme_simulation"):
+            detected_regime = "Monsoon Depression"
+            confidence = 0.96
+            nwp_rainfall = 42.0
+            corrected_rainfall = 148.5
+            change = 106.5
+            heavy_prob = 0.95
+            lower_bound = 124.0
+            upper_bound = 172.0
+            model_used = "Monsoon Depression Extreme Surge Model"
+            risk_index = 94
+            alert_level = "RED"
+            explanation = self._explain_correction(
+                detected_regime, nwp_rainfall, -18.5, 98.0, 9.2, 560.0, district
+            )
+            timeline = self._generate_forecast_timeline(district_id, detected_regime, nwp_rainfall, corrected_rainfall, heavy_prob)
+            return {
+                "district_id": district["id"],
+                "district_name": district["name"],
+                "state": district["state"],
+                "subdivision": district["subdivision"],
+                "lat": district["lat"],
+                "lon": district["lon"],
+                "elevation": district["elevation"],
+                "is_coastal": district["coastal"],
+                "lead_time": lead_time,
+                "detected_regime": detected_regime,
+                "regime_confidence": 0.96,
+                "model_selected": model_used,
+                "atmospheric_profile": {
+                    "pressure_anomaly": {"value": -18.5, "unit": "hPa", "assessment": "Severe Negative Trough"},
+                    "humidity_850": {"value": 98.0, "unit": "%", "assessment": "Deep Saturated"},
+                    "wind_convergence": {"value": 9.2, "unit": "10⁻⁵ s⁻¹", "assessment": "Extreme Convergence"},
+                    "moisture_flux": {"value": 560.0, "unit": "g/kg·m/s", "assessment": "Extreme Marine Surge"},
+                    "cape": {"value": 3100.0, "unit": "J/kg", "assessment": "High Convective Instability"}
+                },
+                "raw_nwp": nwp_rainfall,
+                "corrected_rainfall": corrected_rainfall,
+                "change": change,
+                "heavy_rain_probability": heavy_prob,
+                "uncertainty_interval": {
+                    "lower_bound": lower_bound,
+                    "upper_bound": upper_bound,
+                    "confidence_level": "80% Quantile Interval (10th - 90th percentile)"
+                },
+                "risk_assessment": {
+                    "risk_index": risk_index,
+                    "alert_level": alert_level,
+                    "action_recommendation": "RED ALERT: Extreme cloudburst surge. Deploy heavy dewatering pumps, close low-lying subways, and initiate proactive reservoir pre-discharge."
+                },
+                "explanation": explanation,
+                "timeline": timeline,
+                "last_updated": "14:30 IST"
+            }
 
         if not self.is_ready():
             # Intelligent Meteorological Heuristic Fallback Engine

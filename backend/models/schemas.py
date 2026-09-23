@@ -12,6 +12,7 @@ class WeatherCustomInput(BaseModel):
     moisture_flux: Optional[float] = None
     cape: Optional[float] = None
     nwp_rainfall: Optional[float] = None
+    is_extreme_simulation: Optional[bool] = None
 
 class PredictionRequest(BaseModel):
     district_id: str = "thiruvallur"
